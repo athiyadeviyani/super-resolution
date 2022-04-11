@@ -70,10 +70,10 @@ class SpatialAttention(tf.keras.layers.Layer):
             return tf.keras.layers.multiply([inputs, attention]) 
 
 
-def Conv2D_attention(inputTensor, numFilters, kernelSize=3, activation=None, doBatchNorm=True):
+def Conv2D_attention(inputTensor, numFilters, kernelSize=3, strides=1, activation=None, doBatchNorm=False):
     # first convolution layer
     x = tf.keras.layers.Conv2D(filters=numFilters, kernel_size=(kernelSize, kernelSize),
-                               kernel_initializer='he_normal', padding='same')(inputTensor)
+                               kernel_initializer='he_normal', strides=strides, padding='same')(inputTensor)
     x = ChannelAttention(numFilters, kernelSize)(x)
     x = SpatialAttention(8)(x)
 
@@ -84,14 +84,14 @@ def Conv2D_attention(inputTensor, numFilters, kernelSize=3, activation=None, doB
 
     # second convolution layer
     x = tf.keras.layers.Conv2D(filters=numFilters, kernel_size=(kernelSize, kernelSize),
-                               kernel_initializer='he_normal', padding='same')(x)
+                               kernel_initializer='he_normal', strides=strides, padding='same')(x)
     x = ChannelAttention(numFilters, kernelSize)(x)
     x = SpatialAttention(8)(x)
 
     if doBatchNorm:
         x = tf.keras.layers.BatchNormalization()(x)
 
-    if activation=='relu':
-        x = tf.keras.layers.Activation('relu')(x)
+    if activation != None:
+        x = tf.keras.layers.Activation(activation)(x)  # activatin = 'relu', 'tanh', ...
 
     return x
