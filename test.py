@@ -52,7 +52,10 @@ print(f'PSNR = {psnrv.numpy():3f}')
 # Save weights to separate location (needed for demo)
 trainer.model.save_weights(weights_file)
 
+
 model = edsr(scale=scale, num_res_blocks=depth)
+# with attention
+# model = edsr(scale=scale, num_res_blocks=depth, attention=True)
 model.load_weights(weights_file)
 
 from model import resolve_single
