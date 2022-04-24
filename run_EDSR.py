@@ -28,8 +28,8 @@ valid_ds = div2k_valid.dataset(batch_size=1, random_transform=False, repeat_coun
 
 attention = True  # change to false
 
-trainer = EdsrTrainer(model=edsr(scale=scale, num_res_blocks=depth), 
-                      checkpoint_dir=f'.ckpt/edsr-{depth}-x{scale}', attention=attention)
+trainer = EdsrTrainer(model=edsr(scale=scale, num_res_blocks=depth, attention=attention), 
+                      checkpoint_dir=f'.ckpt/edsr-{depth}-x{scale}')
 
 # Train EDSR model for 300,000 steps and evaluate model
 # every 1000 steps on the first 10 images of the DIV2K
