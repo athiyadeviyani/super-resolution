@@ -26,8 +26,10 @@ div2k_valid = DIV2K(scale=scale, subset='valid', downgrade=downgrade)
 train_ds = div2k_train.dataset(batch_size=16, random_transform=True)
 valid_ds = div2k_valid.dataset(batch_size=1, random_transform=False, repeat_count=1)
 
+attention = True  # change to false
+
 trainer = EdsrTrainer(model=edsr(scale=scale, num_res_blocks=depth), 
-                      checkpoint_dir=f'.ckpt/edsr-{depth}-x{scale}')
+                      checkpoint_dir=f'.ckpt/edsr-{depth}-x{scale}', attention=attention)
 
 # Train EDSR model for 300,000 steps and evaluate model
 # every 1000 steps on the first 10 images of the DIV2K
@@ -53,9 +55,7 @@ print(f'PSNR = {psnrv.numpy():3f}')
 trainer.model.save_weights(weights_file)
 
 
-# model = edsr(scale=scale, num_res_blocks=depth)
-# with attention
-model = edsr(scale=scale, num_res_blocks=depth, attention=True)
+model = edsr(scale=scale, num_res_blocks=depth, attention=attention)
 model.load_weights(weights_file)
 
 from model import resolve_single
