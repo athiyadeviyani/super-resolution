@@ -9,46 +9,59 @@ LR_SIZE = 24
 HR_SIZE = 96
 
 
-def upsample(x_in, num_filters):
-    # x = Conv2D(num_filters, kernel_size=3, padding='same')(x_in)
-    x = Conv2D_attention(x_in, numFilters=num_filters, kernelSize=3)
+def upsample(x_in, num_filters, attention=False):
+    if not attention:
+        x = Conv2D(num_filters, kernel_size=3, padding='same')(x_in)
+    else:
+        x = Conv2D_attention(x_in, numFilters=num_filters, kernelSize=3)
     x = Lambda(pixel_shuffle(scale=2))(x)
     return PReLU(shared_axes=[1, 2])(x)
 
 
-def res_block(x_in, num_filters, momentum=0.8):
-    # x = Conv2D(num_filters, kernel_size=3, padding='same')(x_in)
-    x = Conv2D_attention(x_in, numFilters=num_filters, kernelSize=3)
+def res_block(x_in, num_filters, momentum=0.8, attention=False):
+    if not attention:
+        x = Conv2D(num_filters, kernel_size=3, padding='same')(x_in)
+    else:
+        x = Conv2D_attention(x_in, numFilters=num_filters, kernelSize=3)
     x = BatchNormalization(momentum=momentum)(x)
     x = PReLU(shared_axes=[1, 2])(x)
-    # x = Conv2D(num_filters, kernel_size=3, padding='same')(x)
-    x = Conv2D_attention(x, numFilters=num_filters, kernelSize=3)
+    
+    if not attention:
+        x = Conv2D(num_filters, kernel_size=3, padding='same')(x)
+    else:
+        x = Conv2D_attention(x, numFilters=num_filters, kernelSize=3)
     x = BatchNormalization(momentum=momentum)(x)
     x = Add()([x_in, x])
     return x
 
 
-def sr_resnet(num_filters=64, num_res_blocks=16):
+def sr_resnet(num_filters=64, num_res_blocks=16, attention=False):
     x_in = Input(shape=(None, None, 3))
     x = Lambda(normalize_01)(x_in)
 
-    # x = Conv2D(num_filters, kernel_size=9, padding='same')(x)
-    x = Conv2D_attention(x, numFilters=num_filters, kernelSize=9)
+    if not attention:
+        x = Conv2D(num_filters, kernel_size=9, padding='same')(x)
+    else:
+        x = Conv2D_attention(x, numFilters=num_filters, kernelSize=9)
     x = x_1 = PReLU(shared_axes=[1, 2])(x)
 
     for _ in range(num_res_blocks):
-        x = res_block(x, num_filters)
+        x = res_block(x, num_filters, attention=attention)
 
-    # x = Conv2D(num_filters, kernel_size=3, padding='same')(x)
-    x = Conv2D_attention(x, numFilters=num_filters, kernelSize=3)
+    if not attention:
+        x = Conv2D(num_filters, kernel_size=3, padding='same')(x)
+    else:
+        x = Conv2D_attention(x, numFilters=num_filters, kernelSize=3)
     x = BatchNormalization()(x)
     x = Add()([x_1, x])
 
-    x = upsample(x, num_filters * 4)
-    x = upsample(x, num_filters * 4)
+    x = upsample(x, num_filters * 4, attention=attention)
+    x = upsample(x, num_filters * 4, attention=attention)
 
-    # x = Conv2D(3, kernel_size=9, padding='same', activation='tanh')(x)
-    x = Conv2D_attention(x, numFilters=num_filters, kernelSize=3, activation='tanh')
+    if not attention:
+        x = Conv2D(3, kernel_size=9, padding='same', activation='tanh')(x)
+    else:
+        x = Conv2D_attention(x, numFilters=num_filters, kernelSize=3, activation='tanh')
     x = Lambda(denormalize_m11)(x)
 
     return Model(x_in, x)
@@ -57,29 +70,31 @@ def sr_resnet(num_filters=64, num_res_blocks=16):
 generator = sr_resnet
 
 
-def discriminator_block(x_in, num_filters, strides=1, batchnorm=True, momentum=0.8):
-    # x = Conv2D(num_filters, kernel_size=3, strides=strides, padding='same')(x_in)
-    x = Conv2D_attention(x_in, numFilters=num_filters, kernelSize=3, strides=strides)
+def discriminator_block(x_in, num_filters, strides=1, batchnorm=True, momentum=0.8, attention=False):
+    if not attention:
+        x = Conv2D(num_filters, kernel_size=3, strides=strides, padding='same')(x_in)
+    else:
+        x = Conv2D_attention(x_in, numFilters=num_filters, kernelSize=3, strides=strides)
     if batchnorm:
         x = BatchNormalization(momentum=momentum)(x)
     return LeakyReLU(alpha=0.2)(x)
 
 
-def discriminator(num_filters=64):
+def discriminator(num_filters=64, attention=False):
     x_in = Input(shape=(HR_SIZE, HR_SIZE, 3))
     x = Lambda(normalize_m11)(x_in)
 
-    x = discriminator_block(x, num_filters, batchnorm=False)
-    x = discriminator_block(x, num_filters, strides=2)
+    x = discriminator_block(x, num_filters, batchnorm=False, attention=attention)
+    x = discriminator_block(x, num_filters, strides=2, attention=attention)
 
-    x = discriminator_block(x, num_filters * 2)
-    x = discriminator_block(x, num_filters * 2, strides=2)
+    x = discriminator_block(x, num_filters * 2, attention=attention)
+    x = discriminator_block(x, num_filters * 2, strides=2, attention=attention)
 
-    x = discriminator_block(x, num_filters * 4)
-    x = discriminator_block(x, num_filters * 4, strides=2)
+    x = discriminator_block(x, num_filters * 4, attention=attention)
+    x = discriminator_block(x, num_filters * 4, strides=2, attention=attention)
 
-    x = discriminator_block(x, num_filters * 8)
-    x = discriminator_block(x, num_filters * 8, strides=2)
+    x = discriminator_block(x, num_filters * 8, attention=attention)
+    x = discriminator_block(x, num_filters * 8, strides=2, attention=attention)
 
     x = Flatten()(x)
 

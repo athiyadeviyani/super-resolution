@@ -13,7 +13,7 @@ def edsr(scale, num_filters=64, num_res_blocks=8, res_block_scaling=None, attent
     else:
         x = b = Conv2D(num_filters, 3, padding='same')(x)
     for i in range(num_res_blocks):
-        b = res_block(b, num_filters, res_block_scaling)
+        b = res_block(b, num_filters, res_block_scaling, attention=attention)
 
     if attention:
         b = Conv2D_attention(b, numFilters=num_filters, kernelSize=3)
@@ -49,7 +49,7 @@ def res_block(x_in, filters, scaling, attention=False):
 
 
 def upsample(x, scale, num_filters, attention=False):
-    def upsample_1(x, factor, **kwargs):
+    def upsample_1(x, factor, attention=False, **kwargs):
         if attention:
             x = Conv2D_attention(x, numFilters=num_filters * (factor ** 2), kernelSize=3)
         else:
@@ -57,11 +57,11 @@ def upsample(x, scale, num_filters, attention=False):
         return Lambda(pixel_shuffle(scale=factor))(x)
 
     if scale == 2:
-        x = upsample_1(x, 2, name='conv2d_1_scale_2')
+        x = upsample_1(x, 2, attention=attention, name='conv2d_1_scale_2', )
     elif scale == 3:
-        x = upsample_1(x, 3, name='conv2d_1_scale_3')
+        x = upsample_1(x, 3, attention=attention, name='conv2d_1_scale_3')
     elif scale == 4:
-        x = upsample_1(x, 2, name='conv2d_1_scale_2')
-        x = upsample_1(x, 2, name='conv2d_2_scale_2')
+        x = upsample_1(x, 2, attention=attention, name='conv2d_1_scale_2')
+        x = upsample_1(x, 2, attention=attention, name='conv2d_2_scale_2')
 
     return x

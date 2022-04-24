@@ -18,9 +18,11 @@ div2k_valid = DIV2K(scale=4, subset='valid', downgrade='bicubic')
 train_ds = div2k_train.dataset(batch_size=16, random_transform=True)
 valid_ds = div2k_valid.dataset(batch_size=16, random_transform=True, repeat_count=1)
 
+# change to true
+attention = False
 
 # Generator pre-training
-pre_trainer = SrganGeneratorTrainer(model=generator(), checkpoint_dir=f'.ckpt/pre_generator')
+pre_trainer = SrganGeneratorTrainer(model=generator(attention=attention), checkpoint_dir=f'.ckpt/pre_generator')
 pre_trainer.train(train_ds,
                   valid_ds.take(10),
                   steps=1000000, 
@@ -30,17 +32,17 @@ pre_trainer.train(train_ds,
 pre_trainer.model.save_weights(weights_file('pre_generator.h5'))
 
 # Generator fine-tuning
-gan_generator = generator()
+gan_generator = generator(attention=attention)
 gan_generator.load_weights(weights_file('pre_generator.h5'))
 
-gan_trainer = SrganTrainer(generator=gan_generator, discriminator=discriminator())
+gan_trainer = SrganTrainer(generator=gan_generator, discriminator=discriminator(attention=attention))
 gan_trainer.train(train_ds, steps=200000)
 
 gan_trainer.generator.save_weights(weights_file('gan_generator.h5'))
 gan_trainer.discriminator.save_weights(weights_file('gan_discriminator.h5'))
 
-pre_generator = generator()
-gan_generator = generator()
+pre_generator = generator(attention=attention)
+gan_generator = generator(attention=attention)
 
 pre_generator.load_weights(weights_file('pre_generator.h5'))
 gan_generator.load_weights(weights_file('gan_generator.h5'))
