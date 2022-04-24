@@ -53,9 +53,9 @@ print(f'PSNR = {psnrv.numpy():3f}')
 trainer.model.save_weights(weights_file)
 
 
-model = edsr(scale=scale, num_res_blocks=depth)
+# model = edsr(scale=scale, num_res_blocks=depth)
 # with attention
-# model = edsr(scale=scale, num_res_blocks=depth, attention=True)
+model = edsr(scale=scale, num_res_blocks=depth, attention=True)
 model.load_weights(weights_file)
 
 from model import resolve_single
@@ -65,6 +65,8 @@ print("resolving EDSR model...")
 def resolve_and_plot(lr_image_path):
     lr = load_image(lr_image_path)
     sr = resolve_single(model, lr)
+
     plot_sample(lr, sr)
+    plt.savefig("edsr_sample")
 
 resolve_and_plot('demo/0869x4-crop.png')
