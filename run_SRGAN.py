@@ -19,7 +19,7 @@ train_ds = div2k_train.dataset(batch_size=16, random_transform=True)
 valid_ds = div2k_valid.dataset(batch_size=16, random_transform=True, repeat_count=1)
 
 # change to true
-attention = False
+attention = True
 
 # Generator pre-training
 pre_trainer = SrganGeneratorTrainer(model=generator(attention=attention), checkpoint_dir=f'.ckpt/pre_generator')
