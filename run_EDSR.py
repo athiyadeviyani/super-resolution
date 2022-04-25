@@ -50,7 +50,9 @@ trainer.restore()
 print("evaluating EDSR model...")
 # Evaluate model on full validation set
 psnrv = trainer.evaluate(valid_ds)
+ssimv = trainer.evaluate(valid_ds)
 print(f'PSNR = {psnrv.numpy():3f}')
+print(f'SSIM = {ssimv.numpy():3f}')
 
 # Save weights to separate location (needed for demo)
 trainer.model.save_weights(weights_file)
