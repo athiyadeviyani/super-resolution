@@ -1,7 +1,8 @@
 import time
 import tensorflow as tf
+import os
 
-from model import evaluate
+from model import evaluate, evaluate2
 from model import srgan
 
 from tensorflow.keras.applications.vgg19 import preprocess_input
@@ -9,7 +10,7 @@ from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.losses import MeanAbsoluteError
 from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.metrics import Mean
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.optimizers.schedules import PiecewiseConstantDecay
 
 
@@ -30,13 +31,18 @@ class Trainer:
                                                              directory=checkpoint_dir,
                                                              max_to_keep=3)
 
-        self.restore()
+        #self.restore()
 
     @property
     def model(self):
         return self.checkpoint.model
 
-    def train(self, train_dataset, valid_dataset, steps, evaluate_every=1000, save_best_only=False):
+    def train(self, train_dataset, valid_dataset, steps, model_name, evaluate_every=1000, save_best_only=False):
+
+        os.makedirs("results", exist_ok=True)
+        loss_values = []
+        psnr_values = []
+        ssim_values = []
         loss_mean = Mean()
 
         ckpt_mgr = self.checkpoint_manager
@@ -54,12 +60,31 @@ class Trainer:
             if step % evaluate_every == 0:
                 loss_value = loss_mean.result()
                 loss_mean.reset_states()
+                loss_values.append(loss_value.numpy())
 
                 # Compute PSNR on validation dataset
                 psnr_value = self.evaluate(valid_dataset)
+                ssim_value = self.evaluate2(valid_dataset)
+                psnr_values.append(psnr_value.numpy())
+                ssim_values.append(ssim_value.numpy())
+
+                output_file = open(os.path.join(os.path.join(os.getcwd(), "results"),f"{model_name}_loss.txt"), 'w')
+                for t in loss_values:
+                    output_file.write(str(t) + "\n")
+                output_file.close()
+
+                output_file = open(os.path.join(os.path.join(os.getcwd(), "results"),f"{model_name}_psnr.txt"), 'w')
+                for t in psnr_values:
+                    output_file.write(str(t) + "\n")
+                output_file.close()
+
+                output_file = open(os.path.join(os.path.join(os.getcwd(), "results"),f"{model_name}_ssim.txt"), 'w')
+                for t in ssim_values:
+                    output_file.write(str(t) + "\n")
+                output_file.close()
 
                 duration = time.perf_counter() - self.now
-                print(f'{step}/{steps}: loss = {loss_value.numpy():.3f}, PSNR = {psnr_value.numpy():3f} ({duration:.2f}s)')
+                print(f'{step}/{steps}: loss = {loss_value.numpy():.3f}, PSNR = {psnr_value.numpy():3f}, SSIM = {ssim_value.numpy():3f} ({duration:.2f}s)')
 
                 if save_best_only and psnr_value <= ckpt.psnr:
                     self.now = time.perf_counter()
@@ -87,6 +112,9 @@ class Trainer:
 
     def evaluate(self, dataset):
         return evaluate(self.checkpoint.model, dataset)
+    
+    def evaluate2(self, dataset):
+        return evaluate2(self.checkpoint.model, dataset)
 
     def restore(self):
         if self.checkpoint_manager.latest_checkpoint:
@@ -101,8 +129,8 @@ class EdsrTrainer(Trainer):
                  learning_rate=PiecewiseConstantDecay(boundaries=[200000], values=[1e-4, 5e-5])):
         super().__init__(model, loss=MeanAbsoluteError(), learning_rate=learning_rate, checkpoint_dir=checkpoint_dir)
 
-    def train(self, train_dataset, valid_dataset, steps=300000, evaluate_every=1000, save_best_only=True):
-        super().train(train_dataset, valid_dataset, steps, evaluate_every, save_best_only)
+    def train(self, train_dataset, valid_dataset, model_name, steps=300000, evaluate_every=1000, save_best_only=True):
+        super().train(train_dataset, valid_dataset, steps, model_name, evaluate_every, save_best_only)
 
 
 class WdsrTrainer(Trainer):
@@ -112,8 +140,8 @@ class WdsrTrainer(Trainer):
                  learning_rate=PiecewiseConstantDecay(boundaries=[200000], values=[1e-3, 5e-4])):
         super().__init__(model, loss=MeanAbsoluteError(), learning_rate=learning_rate, checkpoint_dir=checkpoint_dir)
 
-    def train(self, train_dataset, valid_dataset, steps=300000, evaluate_every=1000, save_best_only=True):
-        super().train(train_dataset, valid_dataset, steps, evaluate_every, save_best_only)
+    def train(self, train_dataset, valid_dataset, model_name, steps=300000, evaluate_every=1000, save_best_only=True):
+        super().train(train_dataset, valid_dataset, steps, model_name, evaluate_every, save_best_only)
 
 
 class SrganGeneratorTrainer(Trainer):
@@ -123,8 +151,8 @@ class SrganGeneratorTrainer(Trainer):
                  learning_rate=1e-4):
         super().__init__(model, loss=MeanSquaredError(), learning_rate=learning_rate, checkpoint_dir=checkpoint_dir)
 
-    def train(self, train_dataset, valid_dataset, steps=1000000, evaluate_every=1000, save_best_only=True):
-        super().train(train_dataset, valid_dataset, steps, evaluate_every, save_best_only)
+    def train(self, train_dataset, valid_dataset, model_name, steps=1000000, evaluate_every=1000, save_best_only=True):
+        super().train(train_dataset, valid_dataset, steps, model_name, evaluate_every, save_best_only)
 
 
 class SrganTrainer:

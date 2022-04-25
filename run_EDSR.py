@@ -40,7 +40,8 @@ trainer.train(train_ds,
               valid_ds.take(10),
               steps=300000, 
               evaluate_every=1000, 
-              save_best_only=True)
+              save_best_only=True,
+              model_name = "edsr_attention")
 
 
 # Restore from checkpoint with highest PSNR
