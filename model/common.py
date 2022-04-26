@@ -27,6 +27,16 @@ def evaluate(model, dataset):
     return tf.reduce_mean(psnr_values)
 
 
+def evaluate2(model, dataset):
+    ssim_values = []
+    for lr, hr in dataset:
+        sr = resolve(model, lr)
+        ssim_value = ssim(hr, sr)[0]
+        ssim_values.append(ssim_value)
+    return tf.reduce_mean(ssim_values)
+
+
+
 # ---------------------------------------
 #  Normalization
 # ---------------------------------------
@@ -62,6 +72,9 @@ def denormalize_m11(x):
 
 def psnr(x1, x2):
     return tf.image.psnr(x1, x2, max_val=255)
+
+def ssim(x1, x2):
+    return tf.image.ssim(x1, x2, max_val=225)
 
 
 # ---------------------------------------

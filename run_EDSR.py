@@ -40,7 +40,8 @@ trainer.train(train_ds,
               valid_ds.take(10),
               steps=300000, 
               evaluate_every=1000, 
-              save_best_only=True)
+              save_best_only=True,
+              model_name = "edsr_attention")
 
 
 # Restore from checkpoint with highest PSNR
@@ -49,7 +50,9 @@ trainer.restore()
 print("evaluating EDSR model...")
 # Evaluate model on full validation set
 psnrv = trainer.evaluate(valid_ds)
+ssimv = trainer.evaluate(valid_ds)
 print(f'PSNR = {psnrv.numpy():3f}')
+print(f'SSIM = {ssimv.numpy():3f}')
 
 # Save weights to separate location (needed for demo)
 trainer.model.save_weights(weights_file)
