@@ -10,8 +10,8 @@ def edsr(scale, num_filters=64, num_res_blocks=8, res_block_scaling=None, attent
 
     if attention:
         x = b = Conv2D(num_filters, 3, padding='same')(x)
-        x = b = ChannelAttention(num_filters, 3)(x)
-        x = b = SpatialAttention(8)(x)
+        # x = b = ChannelAttention(num_filters, 8)(x)
+        # x = b = SpatialAttention(7)(x)
     else:
         x = b = Conv2D(num_filters, 3, padding='same')(x)
     
@@ -21,8 +21,8 @@ def edsr(scale, num_filters=64, num_res_blocks=8, res_block_scaling=None, attent
     if attention:
         # b = Conv2D_attention(b, numFilters=num_filters, kernelSize=3)
         b = Conv2D(num_filters, 3, padding='same')(b)
-        b = ChannelAttention(num_filters, 3)(b)
-        b = SpatialAttention(8)(b)
+        # b = ChannelAttention(num_filters, 8)(b)
+        # b = SpatialAttention(7)(b)
 # 
     else:
         b = Conv2D(num_filters, 3, padding='same')(b)
@@ -33,8 +33,8 @@ def edsr(scale, num_filters=64, num_res_blocks=8, res_block_scaling=None, attent
     if attention:
         # x = Conv2D_attention(x, numFilters=3, kernelSize=3)
         x = Conv2D(3, 3, padding='same')(x)
-        x = ChannelAttention(3, 3)(x)
-        x = SpatialAttention(8)(x)
+        # x = ChannelAttention(3, 8)(x)
+        # x = SpatialAttention(7)(x)
     else:
         x = Conv2D(3, 3, padding='same')(x)
 
@@ -46,16 +46,16 @@ def res_block(x_in, filters, scaling, attention=False):
     if attention:
         # x = Conv2D_attention(x_in, numFilters=filters, kernelSize=3, activation='relu')
         x = Conv2D(filters, 3, padding='same', activation='relu')(x_in)
-        x = ChannelAttention(filters, 3)(x)
-        x = SpatialAttention(8)(x)
+        x = ChannelAttention(filters, 8)(x)
+        x = SpatialAttention(7)(x)
     else:
         x = Conv2D(filters, 3, padding='same', activation='relu')(x_in)
     
     if attention:
         # x = Conv2D_attention(x, numFilters=filters, kernelSize=3)
-        x = Conv2D(filters, 3, padding='same', activation='relu')(x)
-        x = ChannelAttention(filters, 3)(x)
-        x = SpatialAttention(8)(x)
+        x = Conv2D(filters, 3, padding='same')(x)
+        x = ChannelAttention(filters, 8)(x)
+        x = SpatialAttention(7)(x)
     else:
         x = Conv2D(filters, 3, padding='same')(x)
     if scaling:
@@ -69,8 +69,8 @@ def upsample(x, scale, num_filters, attention=False):
         if attention:
             # x = Conv2D_attention(x, numFilters=num_filters * (factor ** 2), kernelSize=3)
             x = Conv2D(num_filters * (factor ** 2), 3, padding='same', **kwargs)(x)
-            x = ChannelAttention(num_filters * (factor ** 2), 3)(x)
-            x = SpatialAttention(8)(x)
+            # x = ChannelAttention(num_filters * (factor ** 2), 8)(x)
+            # x = SpatialAttention(7)(x)
         else:
             x = Conv2D(num_filters * (factor ** 2), 3, padding='same', **kwargs)(x)
         return Lambda(pixel_shuffle(scale=factor))(x)

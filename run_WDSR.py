@@ -5,8 +5,6 @@ from data import DIV2K
 from model.wdsr import wdsr_b
 from train import WdsrTrainer
 
-%matplotlib inline
-
 # Number of residual blocks
 depth = 32
 
@@ -28,7 +26,9 @@ div2k_valid = DIV2K(scale=scale, subset='valid', downgrade=downgrade)
 train_ds = div2k_train.dataset(batch_size=16, random_transform=True)
 valid_ds = div2k_valid.dataset(batch_size=1, random_transform=False, repeat_count=1)
 
-trainer = WdsrTrainer(model=wdsr_b(scale=scale, num_res_blocks=depth), 
+attention = True
+
+trainer = WdsrTrainer(model=wdsr_b(scale=scale, num_res_blocks=depth, attention=attention), 
                       checkpoint_dir=f'.ckpt/wdsr-b-{depth}-x{scale}')
 
 
@@ -40,7 +40,8 @@ trainer.train(train_ds,
               valid_ds.take(10),
               steps=300000, 
               evaluate_every=1000, 
-              save_best_only=True)
+              save_best_only=True,
+              model_name='wdsr_attention')
 
 
 # Restore from checkpoint with highest PSNR
@@ -53,7 +54,7 @@ print(f'PSNR = {psnr.numpy():3f}')
 # Save weights to separate location (needed for demo)
 trainer.model.save_weights(weights_file)
 
-model = wdsr_b(scale=scale, num_res_blocks=depth)
+model = wdsr_b(scale=scale, num_res_blocks=depth, attention=attention)
 model.load_weights(weights_file)
 
 

@@ -1,6 +1,7 @@
 import tensorflow_addons as tfa
 
-from tensorflow.python.keras.layers import Add, Conv2D, Input, Lambda
+from tensorflow.python.keras.layers import Add, Input, Lambda
+from tensorflow.keras.layers import Conv2D
 from tensorflow.python.keras.models import Model
 from model.attention import ChannelAttention, SpatialAttention
 
@@ -8,12 +9,12 @@ from model.attention import ChannelAttention, SpatialAttention
 from model.common import normalize, denormalize, pixel_shuffle
 
 
-def wdsr_a(scale, num_filters=32, num_res_blocks=8, res_block_expansion=4, res_block_scaling=None):
-    return wdsr(scale, num_filters, num_res_blocks, res_block_expansion, res_block_scaling, res_block_a)
+def wdsr_a(scale, num_filters=32, num_res_blocks=8, res_block_expansion=4, res_block_scaling=None, attention=False):
+    return wdsr(scale, num_filters, num_res_blocks, res_block_expansion, res_block_scaling, res_block_a, attention=attention)
 
 
-def wdsr_b(scale, num_filters=32, num_res_blocks=8, res_block_expansion=6, res_block_scaling=None):
-    return wdsr(scale, num_filters, num_res_blocks, res_block_expansion, res_block_scaling, res_block_b)
+def wdsr_b(scale, num_filters=32, num_res_blocks=8, res_block_expansion=6, res_block_scaling=None, attention=False):
+    return wdsr(scale, num_filters, num_res_blocks, res_block_expansion, res_block_scaling, res_block_b, attention=attention)
 
 
 def wdsr(scale, num_filters, num_res_blocks, res_block_expansion, res_block_scaling, res_block, attention=False):
@@ -57,9 +58,6 @@ def wdsr(scale, num_filters, num_res_blocks, res_block_expansion, res_block_scal
 def res_block_a(x_in, num_filters, expansion, kernel_size, scaling, attention=False):
     x = conv2d_weightnorm(num_filters * expansion, kernel_size, padding='same', activation='relu')(x_in)
     x = conv2d_weightnorm(num_filters, kernel_size, padding='same')(x)
-    if attention:
-        x = ChannelAttention(num_filters, 3)(x)
-        x = SpatialAttention(8)(x)
     if scaling:
         x = Lambda(lambda t: t * scaling)(x)
     x = Add()([x_in, x])
@@ -71,9 +69,6 @@ def res_block_b(x_in, num_filters, expansion, kernel_size, scaling, attention=Fa
     x = conv2d_weightnorm(num_filters * expansion, 1, padding='same', activation='relu')(x_in)
     x = conv2d_weightnorm(int(num_filters * linear), 1, padding='same')(x)
     x = conv2d_weightnorm(num_filters, kernel_size, padding='same')(x)
-    if attention:
-        x = ChannelAttention(num_filters, 3)(x)
-        x = SpatialAttention(8)(x)
     if scaling:
         x = Lambda(lambda t: t * scaling)(x)
     x = Add()([x_in, x])
