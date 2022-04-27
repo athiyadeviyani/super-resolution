@@ -20,6 +20,9 @@ valid_ds = div2k_valid.dataset(batch_size=16, random_transform=True, repeat_coun
 
 # change to true
 attention = True
+model_name = "srgan"
+if attention:
+    model_name = "srgan_attention"
 
 # Generator pre-training
 pre_trainer = SrganGeneratorTrainer(model=generator(attention=attention), checkpoint_dir=f'.ckpt/pre_generator')
@@ -27,7 +30,8 @@ pre_trainer.train(train_ds,
                   valid_ds.take(10),
                   steps=1000000, 
                   evaluate_every=1000, 
-                  save_best_only=False)
+                  save_best_only=False,
+                  model_name=model_name)
 
 pre_trainer.model.save_weights(weights_file('pre_generator.h5'))
 
