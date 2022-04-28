@@ -51,6 +51,15 @@ gan_generator = generator(attention=attention)
 pre_generator.load_weights(weights_file('pre_generator.h5'))
 gan_generator.load_weights(weights_file('gan_generator.h5'))
 
+print("evaluating SRGAN model...")
+# Evaluate model on full validation set
+
+
+psnrv = gan_trainer.evaluate(valid_ds)
+ssimv = gan_trainer.evaluate2(valid_ds)
+print(f'PSNR = {psnrv.numpy():3f}')
+print(f'SSIM = {ssimv.numpy():3f}')
+
 from model import resolve_single
 from utils import load_image
 
