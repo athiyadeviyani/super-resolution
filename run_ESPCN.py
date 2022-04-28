@@ -2,8 +2,8 @@ import os
 import matplotlib.pyplot as plt
 
 from data import DIV2K
-from model.edsr import edsr
-from train import EdsrTrainer
+from model.espcn import espcn
+from train import EspcnTrainer
 
 # Number of residual blocks
 depth = 16
@@ -15,8 +15,8 @@ scale = 4
 downgrade = 'bicubic'
 
 # Location of model weights (needed for demo)
-weights_dir = f'weights/edsr-{depth}-x{scale}'
-weights_file = os.path.join(weights_dir, 'weights.h5')
+weights_dir = f'weights/espcn'
+weights_file = os.path.join(weights_dir, 'espcn_weights.h5')
 
 os.makedirs(weights_dir, exist_ok=True)
 
@@ -28,26 +28,26 @@ valid_ds = div2k_valid.dataset(batch_size=1, random_transform=False, repeat_coun
 
 attention = True  # change to false
 
-trainer = EdsrTrainer(model=edsr(scale=scale, num_res_blocks=depth, attention=attention), 
-                      checkpoint_dir=f'.ckpt/edsr-{depth}-x{scale}')
+trainer = EspcnTrainer(model=espcn(attention=attention), 
+                      checkpoint_dir=f'.ckpt/espcn')
 
-# Train EDSR model for 300,000 steps and evaluate model
+# Train ESPCN model for 300,000 steps and evaluate model
 # every 1000 steps on the first 10 images of the DIV2K
 # validation set. Save a checkpoint only if evaluation
 # PSNR has improved.
-print("training EDSR model...")
+print("training ESPCN model...")
 trainer.train(train_ds,
               valid_ds.take(10),
               steps=300000, 
               evaluate_every=1000, 
               save_best_only=True,
-              model_name = "edsr_attention")
+              model_name = "espcn_attention")
 
 
 # Restore from checkpoint with highest PSNR
 trainer.restore()
 
-print("evaluating EDSR model...")
+print("evaluating ESPCN model...")
 # Evaluate model on full validation set
 psnrv = trainer.evaluate(valid_ds)
 ssimv = trainer.evaluate2(valid_ds)
@@ -58,18 +58,18 @@ print(f'SSIM = {ssimv.numpy():3f}')
 trainer.model.save_weights(weights_file)
 
 
-model = edsr(scale=scale, num_res_blocks=depth, attention=attention)
+model = espcn(attention=attention)
 model.load_weights(weights_file)
 
 from model import resolve_single
 from utils import load_image, plot_sample
 
-print("resolving EDSR model...")
+print("resolving ESPCN model...")
 def resolve_and_plot(lr_image_path):
     lr = load_image(lr_image_path)
     sr = resolve_single(model, lr)
 
     plot_sample(lr, sr)
-    plt.savefig("edsr_sample")
+    plt.savefig("espcn_sample")
 
 resolve_and_plot('demo/0869x4-crop.png')
