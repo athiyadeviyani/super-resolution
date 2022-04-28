@@ -4,6 +4,7 @@ import os
 
 from model import evaluate, evaluate2
 from model import srgan
+from model.lapsrn import charbonnier
 
 from tensorflow.keras.applications.vgg19 import preprocess_input
 from tensorflow.keras.losses import BinaryCrossentropy
@@ -148,6 +149,17 @@ class SrcnnTrainer(Trainer):
                  checkpoint_dir,
                  learning_rate=PiecewiseConstantDecay(boundaries=[200000], values=[1e-4, 5e-5])):
         super().__init__(model, loss=MeanAbsoluteError(), learning_rate=learning_rate, checkpoint_dir=checkpoint_dir)
+
+    def train(self, train_dataset, valid_dataset, model_name, steps=300000, evaluate_every=1000, save_best_only=True):
+        super().train(train_dataset, valid_dataset, steps, model_name, evaluate_every, save_best_only)
+
+# LapSRN uses charbonnier loss 
+class LapsrnTrainer(Trainer):
+    def __init__(self,
+                 model,
+                 checkpoint_dir,
+                 learning_rate=PiecewiseConstantDecay(boundaries=[200000], values=[1e-4, 5e-5])):
+        super().__init__(model, loss=charbonnier(), learning_rate=learning_rate, checkpoint_dir=checkpoint_dir)
 
     def train(self, train_dataset, valid_dataset, model_name, steps=300000, evaluate_every=1000, save_best_only=True):
         super().train(train_dataset, valid_dataset, steps, model_name, evaluate_every, save_best_only)
