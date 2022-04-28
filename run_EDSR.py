@@ -50,7 +50,7 @@ trainer.restore()
 print("evaluating EDSR model...")
 # Evaluate model on full validation set
 psnrv = trainer.evaluate(valid_ds)
-ssimv = trainer.evaluate(valid_ds)
+ssimv = trainer.evaluate2(valid_ds)
 print(f'PSNR = {psnrv.numpy():3f}')
 print(f'SSIM = {ssimv.numpy():3f}')
 
