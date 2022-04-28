@@ -36,7 +36,7 @@ def espcn(attention=False):
         layer2_relu = SpatialAttention(7)(layer2_relu)
     layer3 = layers.Conv2D(3 * upscale_factor * upscale_factor, (3,3), padding="same")(layer2_relu)
     if attention:
-        layer3 = ChannelAttention(3 * upscale_factor * upscale_factor, 3)(layer3)
+        layer3 = ChannelAttention(3 * upscale_factor * upscale_factor, 8)(layer3)
         layer3 = SpatialAttention(7)(layer3)
     output = tf.nn.depth_to_space(layer3, upscale_factor)
 
