@@ -1,14 +1,20 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models
+from model.attention import ChannelAttention, SpatialAttention
 
-
-def lapsrn():
+def lapsrn(attention=False):
     """Return the espcn model"""
     def residual_network(x, d=3, name=None):
         # Convolution Layers Stacks
         for _ in range(d):
             x = layers.Conv2D(64, (3,3), padding="same", activation=tf.keras.layers.LeakyReLU(alpha=0.2))(x)
+
+            # add attention blocks
+            if attention:
+                x = ChannelAttention(64, 8)(x)
+                x = SpatialAttention(7)(x)
+                
         # Upscale
         x = layers.Conv2DTranspose(64, (4,4), strides=(2,2), padding='same', activation=tf.keras.layers.LeakyReLU(alpha=0.2), name=name)(x)
         return x
