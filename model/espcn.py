@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models
-from custom_image_dataset_from_directory import image_dataset_from_directory
+# from custom_image_dataset_from_directory import image_dataset_from_directory
 import matplotlib.pyplot as plt
 import os
 from PIL import Image
