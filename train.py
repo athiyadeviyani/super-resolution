@@ -197,7 +197,7 @@ class SrganGeneratorTrainer(Trainer):
         super().train(train_dataset, valid_dataset, steps, model_name, evaluate_every, save_best_only)
 
 
-class SrganTrainer:
+class SrganTrainer(Trainer):
     #
     # TODO: model and optimizer checkpoints
     #
