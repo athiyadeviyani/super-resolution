@@ -69,7 +69,7 @@ def resolve_and_plot(lr_image_path):
     pre_sr = resolve_single(pre_generator, lr)
     gan_sr = resolve_single(gan_generator, lr)
     
-    plt.figure(figsize=(20, 20))
+    plt.figure(figsize=(20, 20))11-695
     
     images = [lr, pre_sr, gan_sr]
     titles = ['LR', 'SR (PRE)', 'SR (GAN)']

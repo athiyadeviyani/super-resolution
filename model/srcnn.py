@@ -31,7 +31,7 @@ def srcnn(attention=False):
 
     output = layer3
 
-    model = models.Model(inputs=input, outputs=output)
-    print(model.shape)
+    model = models.Model(inputs=input, outputs=output, name='SRCNN')
 
     return model
+
