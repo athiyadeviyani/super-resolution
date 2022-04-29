@@ -6,7 +6,7 @@ from model.attention import ChannelAttention, SpatialAttention
 
 # input_shape = (600, 480, 3)  
 
-def VDSR(attention=False):
+def vdsr(attention=False):
     low_resolution_image = Input(shape=(None, None, 3))
 
     processing = Conv2D(64, (3, 3), padding='same', kernel_initializer='he_normal', activation='relu')(low_resolution_image)
